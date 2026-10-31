@@ -5,13 +5,20 @@ import { resolve, extname } from 'node:path';
 const base = '/mtg_lifecounter_pwa/';
 const root = resolve('dist-subpath');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.woff2': 'font/woff2' };
+let revision = 0;
 createServer(async (request, response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    if (pathname === '/__test__/update' && request.method === 'POST') {
+      revision++;
+      response.writeHead(200).end('ok');
+      return;
+    }
     if (!pathname.startsWith(base)) { response.writeHead(404).end(); return; }
     const file = resolve(root, pathname.slice(base.length) || 'index.html');
     if (!file.startsWith(`${root}/`)) { response.writeHead(403).end(); return; }
-    const content = await readFile(file);
+    let content = await readFile(file);
+    if (pathname === `${base}sw.js`) content = Buffer.from(`${content.toString()}\nself.__testRevision = ${revision};\n`);
     response.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
     response.end(content);
   } catch { response.writeHead(404).end(); }

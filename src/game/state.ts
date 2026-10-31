@@ -71,12 +71,20 @@ export function gameReducer(game: Game, action: Action): Game {
   const { history, ...snapshot } = game;
   let next: Snapshot = snapshot;
   if (action.type === 'layout') next = { ...snapshot, layout: action.layout };
-  else if (action.type === 'visible') next = { ...snapshot, visibleCounters: [...new Set(action.counters)] };
+  else if (action.type === 'visible') {
+    const added = action.counters.filter(name => !snapshot.visibleCounters.includes(name));
+    next = {
+      ...snapshot,
+      visibleCounters: [...new Set(action.counters)],
+      players: snapshot.players.map(player => ({ ...player, counters: { ...Object.fromEntries(added.map(name => [name, 0])), ...player.counters } })),
+    };
+  }
   else if (action.type === 'starter') {
     if (!game.players.some(player => player.id === action.id)) return game;
     next = { ...snapshot, starter: action.id };
   } else {
     if (!game.players.some(player => player.id === action.id)) return game;
+    if (action.type === 'player' && action.commanders === 1 && game.players.some(player => (player.damage[`${action.id}:1`] ?? 0) > 0)) return game;
     if (action.type === 'damage') {
       const source = game.players.find(player => player.id === action.source);
       if (!game.setup.commander || !source || source.id === action.id || action.commander < 0 || action.commander >= source.commanders) return game;
@@ -96,6 +104,7 @@ export function gameReducer(game: Game, action: Action): Game {
             const key = `${action.source}:${action.commander}`;
             const old = player.damage[key] ?? 0;
             const value = Math.max(0, old + action.delta);
+            if (value === old) return player;
             return { ...player, life: player.life - (value - old), damage: { ...player.damage, [key]: value } };
           }
           case 'player': return {

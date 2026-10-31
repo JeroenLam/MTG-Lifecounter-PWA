@@ -13,6 +13,15 @@ export function HoldButton({ onStep, ...props }: Props) {
 
   useEffect(() => { step.current = onStep; }, [onStep]);
 
+  useEffect(() => {
+    if (props.disabled) {
+      clearTimeout(timer.current);
+      clearInterval(repeat.current);
+      pointer.current = null;
+      repeated.current = true;
+    }
+  }, [props.disabled]);
+
   function stop() {
     clearTimeout(timer.current);
     clearInterval(repeat.current);

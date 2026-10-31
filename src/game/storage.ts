@@ -37,9 +37,9 @@ const snapshotSchema = z.object({
 });
 const savedSchema = z.object({ version: z.literal(1), game: snapshotSchema.and(z.object({ history: z.array(snapshotSchema).max(50) })) });
 
-export function loadGame(storage: Pick<Storage, 'getItem'> = localStorage): Game {
+export function loadGame(storage?: Pick<Storage, 'getItem'>): Game {
   try {
-    const value = storage.getItem(storageKey);
+    const value = (storage ?? window.localStorage).getItem(storageKey);
     if (!value) return createGame();
     const result = savedSchema.safeParse(JSON.parse(value));
     return result.success ? result.data.game : createGame();
@@ -48,9 +48,9 @@ export function loadGame(storage: Pick<Storage, 'getItem'> = localStorage): Game
   }
 }
 
-export function saveGame(game: Game, storage: Pick<Storage, 'setItem'> = localStorage): boolean {
+export function saveGame(game: Game, storage?: Pick<Storage, 'setItem'>): boolean {
   try {
-    storage.setItem(storageKey, JSON.stringify({ version: 1, game }));
+    (storage ?? window.localStorage).setItem(storageKey, JSON.stringify({ version: 1, game }));
     return true;
   } catch {
     return false;

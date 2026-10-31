@@ -121,3 +121,91 @@ test('orientation adapts and long names fit', async ({ page }) => {
   expect(bounds!.y).toBeGreaterThanOrEqual(0);
   await page.screenshot({ path: 'test-results/long-name-phone.png' });
 });
+
+test('hidden custom counters remain available without losing their value', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Counters for Player 1', exact: true }).click();
+  await page.getByLabel('Custom counter').fill('Charge');
+  await page.getByRole('button', { name: 'Add counter' }).click();
+  await expect(page.getByRole('status', { name: 'Charge', exact: true })).toHaveText('0');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  for (const count of [0, 1]) {
+    await page.getByRole('button', { name: 'Table settings', exact: true }).click();
+    await page.getByRole('checkbox', { name: 'Charge', exact: true }).uncheck();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await page.reload();
+    await page.getByRole('button', { name: 'Table settings', exact: true }).click();
+    await page.getByRole('checkbox', { name: 'Charge', exact: true }).check();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await page.getByRole('button', { name: 'Counters for Player 1', exact: true }).click();
+    await expect(page.getByRole('status', { name: 'Charge', exact: true })).toHaveText(String(count));
+    if (count === 0) await page.getByRole('button', { name: 'Increase Charge', exact: true }).click();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+  }
+});
+
+test('phone touch taps, holds and cancellation work on rotated panels', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, baseURL: 'http://127.0.0.1:4173' });
+  const page = await context.newPage();
+  await page.goto('/');
+  await expect(page.getByTestId('board')).toHaveAttribute('data-layout', 'columns');
+  await page.getByRole('button', { name: 'Decrease Player 1 life', exact: true }).tap();
+  await expect(page.getByTestId('life-player-1')).toHaveText('39');
+  const box = (await page.getByRole('button', { name: 'Increase Player 1 life', exact: true }).boundingBox())!;
+  const session = await context.newCDPSession(page);
+  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + box.width / 2, y: box.y + box.height / 2 }] });
+  await expect.poll(async () => Number(await page.getByTestId('life-player-1').innerText())).toBeGreaterThan(41);
+  await session.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+  const value = await page.getByTestId('life-player-1').innerText();
+  await page.getByRole('button', { name: 'Table settings', exact: true }).tap();
+  await page.getByRole('button', { name: 'Close', exact: true }).tap();
+  await expect(page.getByTestId('life-player-1')).toHaveText(value);
+  await context.close();
+});
+
+for (const [width, height] of [[390, 844], [844, 390]]) {
+  for (const layout of ['rows', 'columns'] as const) {
+    test(`crowded counters and settings fit ${width}x${height} ${layout}`, async ({ page }) => {
+      const game = createGame(presetSetup('Commander', 6));
+      game.layout = layout;
+      game.visibleCounters = ['Poison', 'Energy', 'Experience', 'Radiation', 'Tickets', 'Treasure', 'Storm'];
+      game.players.forEach((player, index) => {
+        player.name = `WWWWWWWWWWWWWWWWWWWWW${index + 1}`;
+        player.life = -50;
+        player.counters = { Poison: 10, Energy: 12, Experience: 5, Radiation: 4, Tickets: 6, Treasure: 999999, Storm: 6 };
+        player.damage = { [`player-${(index + 1) % 6 + 1}:0`]: 21 };
+      });
+      await page.setViewportSize({ width, height });
+      await page.addInitScript(storageSeed, game);
+      await page.goto('/');
+      const overflow = await page.locator('.counter-summary').evaluateAll(elements => elements.some(element => element.scrollWidth > element.clientWidth));
+      expect(overflow).toBe(false);
+      const overlapping = await page.locator('[data-player]').evaluateAll(elements => elements.some(element => {
+        const total = element.querySelector('.life-total span')!.getBoundingClientRect();
+        return [...element.querySelectorAll('.life-zone svg')].some(icon => {
+          const bounds = icon.getBoundingClientRect();
+          return total.left < bounds.right && total.right > bounds.left && total.top < bounds.bottom && total.bottom > bounds.top;
+        });
+      }));
+      expect(overlapping).toBe(false);
+      await page.screenshot({ path: `test-results/counters-${width}-${layout}.png` });
+      await page.getByRole('button', { name: 'Table settings', exact: true }).click();
+      const dialog = page.getByRole('dialog');
+      const bounds = (await dialog.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.y).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(height);
+      for (let index = 0; index < 25; index++) {
+        await page.keyboard.press('Tab');
+        expect(await page.evaluate(() => document.activeElement?.closest('dialog') !== null)).toBe(true);
+      }
+      await page.keyboard.press('Escape');
+      await page.locator('.counter-summary').first().click();
+      await expect(page.getByRole('status', { name: 'Treasure', exact: true })).toHaveText('999999');
+      await page.getByRole('button', { name: 'Decrease Treasure', exact: true }).click();
+      await expect(page.getByRole('status', { name: 'Treasure', exact: true })).toHaveText('999998');
+      await page.screenshot({ path: `test-results/counter-sheet-${width}-${layout}.png` });
+    });
+  }
+}

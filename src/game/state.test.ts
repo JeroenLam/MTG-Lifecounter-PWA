@@ -19,6 +19,17 @@ describe('game actions', () => {
     const game = createGame();
     expect(gameReducer(game, { type: 'counter', id: 'player-1', counter: 'Poison', delta: -1 })).toEqual(game);
   });
+  it('retains zero-valued custom types and counts when hidden and enabled again', () => {
+    let game = gameReducer(createGame(), { type: 'visible', counters: ['Poison', 'Energy', 'Treasure'] });
+    expect(game.players[0].counters.Treasure).toBe(0);
+    game = gameReducer(game, { type: 'visible', counters: ['Poison', 'Energy'] });
+    expect(Object.keys(game.players[0].counters)).toContain('Treasure');
+    game = gameReducer(game, { type: 'visible', counters: ['Poison', 'Energy', 'Treasure'] });
+    game = gameReducer(game, { type: 'counter', id: 'player-1', counter: 'Treasure', delta: 3 });
+    game = gameReducer(game, { type: 'visible', counters: ['Poison', 'Energy'] });
+    game = gameReducer(game, { type: 'visible', counters: ['Poison', 'Energy', 'Treasure'] });
+    expect(game.players[0].counters.Treasure).toBe(3);
+  });
   it('tracks partners separately and reverses damage and life together', () => {
     let game = gameReducer(createGame(), { type: 'player', id: 'player-2', commanders: 2 });
     game = gameReducer(game, { type: 'damage', id: 'player-1', source: 'player-2', commander: 0, delta: 12 });
@@ -35,6 +46,12 @@ describe('game actions', () => {
     const game = createGame();
     expect(gameReducer(game, { type: 'damage', id: 'player-1', source: 'player-2', commander: 1, delta: 1 })).toEqual(game);
     expect(gameReducer(game, { type: 'damage', id: 'player-1', source: 'player-1', commander: 0, delta: 1 })).toEqual(game);
+  });
+  it('does not hide recorded partner damage or save zero damage as a change', () => {
+    let game = gameReducer(createGame(), { type: 'player', id: 'player-2', commanders: 2 });
+    expect(gameReducer(game, { type: 'damage', id: 'player-1', source: 'player-2', commander: 1, delta: -1 })).toEqual(game);
+    game = gameReducer(game, { type: 'damage', id: 'player-1', source: 'player-2', commander: 1, delta: 1 });
+    expect(gameReducer(game, { type: 'player', id: 'player-2', commanders: 1 })).toEqual(game);
   });
   it('resets relationships and starter, while preserving names and colors', () => {
     let game = gameReducer(createGame(), { type: 'player', id: 'player-1', name: '  Atraxa  ' });

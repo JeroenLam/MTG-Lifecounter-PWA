@@ -20,6 +20,7 @@ export function GameSettings({ game, dispatch, onClose, rows, needRefresh, offli
   const [confirm, setConfirm] = useState<'reset' | 'starter' | null>(null);
   const dirty = JSON.stringify(setup) !== JSON.stringify(game.setup);
   const starter = game.players.find(player => player.id === game.starter);
+  const availableCounters = [...new Set([...counterNames, ...game.visibleCounters, ...game.players.flatMap(player => Object.keys(player.counters))])];
   function chooseStarter() { dispatch({ type: 'starter', id: game.players[randomIndex(game.players.length)].id }); setConfirm(null); }
   function updateCount(count: number) {
     setSetup(setup.preset === 'Brawl' ? presetSetup('Brawl', count) : { ...setup, count, preset: setup.preset === '1v1' && count !== 2 ? 'Custom' : setup.preset });
@@ -43,11 +44,11 @@ export function GameSettings({ game, dispatch, onClose, rows, needRefresh, offli
     <div className="setting-line"><span>Seating</span><button className="command" onClick={() => dispatch({ type: 'layout', layout: rows ? 'columns' : 'rows' })}><RotateCw size={18} />Rotate grid</button></div>
     <label className="check-row"><span>Follow device orientation</span><input type="checkbox" checked={game.layout === 'auto'} onChange={event => dispatch({ type: 'layout', layout: event.target.checked ? 'auto' : rows ? 'rows' : 'columns' })} /></label>
     <fieldset><legend>Counters</legend><div className="counter-options">
-      {[...new Set([...counterNames, ...game.visibleCounters])].map(name => <label className="check-row" key={name}><span>{name}</span><input type="checkbox" checked={game.visibleCounters.includes(name)} onChange={event => dispatch({ type: 'visible', counters: event.target.checked ? [...game.visibleCounters, name] : game.visibleCounters.filter(counter => counter !== name) })} /></label>)}
+      {availableCounters.map(name => <label className="check-row" key={name}><span>{name}</span><input type="checkbox" checked={game.visibleCounters.includes(name)} disabled={!game.visibleCounters.includes(name) && game.visibleCounters.length >= 15} onChange={event => dispatch({ type: 'visible', counters: event.target.checked ? [...game.visibleCounters, name] : game.visibleCounters.filter(counter => counter !== name) })} /></label>)}
     </div></fieldset>
     <div className="settings-divider" />
     <button className="command full" onClick={() => starter ? setConfirm('starter') : chooseStarter()}><Flag size={18} />Select starting player{starter && <span className="command-result">{starter.name}</span>}</button>
-    {confirm === 'starter' && <div className="confirmation"><p>Select a different starting player?</p><div className="button-pair"><button className="command" onClick={() => setConfirm(null)}>Cancel</button><button className="command" onClick={chooseStarter}><Flag size={16} />Select again</button></div></div>}
+    {confirm === 'starter' && <div className="confirmation"><p>Select the starting player again?</p><div className="button-pair"><button className="command" onClick={() => setConfirm(null)}>Cancel</button><button className="command" onClick={chooseStarter}><Flag size={16} />Select again</button></div></div>}
     <button className="command full" disabled={game.history.length === 0} onClick={() => dispatch({ type: 'undo' })}><Undo2 size={18} />Undo last change</button>
     <footer className="settings-footer">
       <span>{storageFailed ? 'Session not saved' : 'Game saved on this device'}</span>

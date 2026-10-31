@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createGame, gameReducer } from './state';
 import { loadGame, saveGame, storageKey } from './storage';
+
+afterEach(() => vi.restoreAllMocks());
 
 describe('persistence', () => {
   it('restores scores and history', () => {
@@ -17,5 +19,10 @@ describe('persistence', () => {
   it('handles blocked storage', () => {
     expect(loadGame({ getItem: () => { throw new Error('blocked'); } })).toEqual(createGame());
     expect(saveGame(createGame(), { setItem: () => { throw new Error('quota'); } })).toBe(false);
+  });
+  it('handles a blocked localStorage property itself', () => {
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw new Error('blocked'); });
+    expect(loadGame()).toEqual(createGame());
+    expect(saveGame(createGame())).toBe(false);
   });
 });

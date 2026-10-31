@@ -7,7 +7,7 @@ import { Modal } from './Modal';
 function Stepper({ label, value, onChange, danger = false }: { label: string; value: number; onChange: (delta: number) => void; danger?: boolean }) {
   return <div className={`stepper${danger ? ' danger' : ''}`}>
     <HoldButton className="icon-button" title={`Decrease ${label}`} aria-label={`Decrease ${label}`} disabled={value === 0} onStep={() => onChange(-1)}><Minus /></HoldButton>
-    <output aria-label={label}>{value}</output>
+    <output aria-label={label} style={{ fontSize: value >= 10000 ? 10 : value >= 1000 ? 14 : 22 }}>{value}</output>
     <HoldButton className="icon-button" title={`Increase ${label}`} aria-label={`Increase ${label}`} onStep={() => onChange(1)}><Plus /></HoldButton>
   </div>;
 }

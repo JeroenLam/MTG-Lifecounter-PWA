@@ -1,42 +1,42 @@
 {
-  "name": "mtg-life-counter",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 0.0.0.0",
-    "test": "vitest run",
-    "lint": "eslint .",
-    "test:e2e": "playwright test",
-    "icons": "node scripts/icons.mjs"
-  },
-  "dependencies": {
-    "@fontsource-variable/manrope": "^5.3.0",
-    "lucide-react": "^1.66.0",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "zod": "^4.6.7"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "@playwright/test": "^1.64.1",
-    "@testing-library/jest-dom": "^7.0.1",
-    "@testing-library/react": "^16.3.3",
-    "@types/node": "^26.6.6",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^5.2.0",
-    "eslint": "^9.39.5",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "globals": "^17.13.0",
-    "jsdom": "^30.1.3",
-    "sharp": "^0.35.5",
-    "typescript": "~6.0.0",
-    "typescript-eslint": "^8.72.1",
-    "vite": "^7.3.7",
-    "vite-plugin-pwa": "^2.0.0",
-    "vitest": "^4.1.12"
-  }
+    "name": "mtg-life-counter",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite --host 0.0.0.0",
+        "build": "tsc --noEmit && vite build",
+        "preview": "vite preview --host 0.0.0.0",
+        "test": "vitest run",
+        "lint": "eslint .",
+        "test:e2e": "playwright test",
+        "icons": "node scripts/icons.mjs"
+    },
+    "dependencies": {
+        "@fontsource-variable/manrope": "^5.3.0",
+        "lucide-react": "^1.66.0",
+        "react": "^19.3.1",
+        "react-dom": "^19.3.1",
+        "zod": "^4.6.7"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.5",
+        "@playwright/test": "^1.64.1",
+        "@testing-library/jest-dom": "^7.0.1",
+        "@testing-library/react": "^16.3.3",
+        "@types/node": "^26.6.6",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "@vitejs/plugin-react": "^5.2.0",
+        "eslint": "^9.39.5",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "globals": "^17.13.0",
+        "jsdom": "^30.1.3",
+        "sharp": "^0.35.5",
+        "typescript": "~6.0.0",
+        "typescript-eslint": "^8.72.1",
+        "vite": "^7.3.7",
+        "vite-plugin-pwa": "^2.0.0",
+        "vitest": "^4.1.12"
+    }
 }
