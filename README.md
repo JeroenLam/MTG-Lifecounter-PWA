@@ -2,6 +2,8 @@
 
 A minimal, tablet-first Magic: The Gathering life counter. Static React/TypeScript, installable as a PWA, with no accounts or backend.
 
+**Use it here**: [https://jeroenlam.github.io/MTG-Lifecounter-PWA/](https://jeroenlam.github.io/MTG-Lifecounter-PWA/)
+
 ## Run
 
 Use Node.js 24 and npm.
