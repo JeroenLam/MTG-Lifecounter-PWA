@@ -35,7 +35,7 @@ npm run preview
 
 ## GitHub Pages
 
-Push this project to a GitHub repository on the `main` branch. In **Settings > Pages > Build and deployment**, select **GitHub Actions**. The included workflow validates and publishes the built site; it obtains the Pages base path automatically, including custom-domain/root sites.
+Push this project to a GitHub repository on the `master` branch. In **Settings > Pages > Build and deployment**, select **GitHub Actions**. The included workflow validates and publishes the built site; it obtains the Pages base path automatically, including custom-domain/root sites.
 
 For a manual project-path build:
 
